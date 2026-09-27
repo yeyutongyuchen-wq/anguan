@@ -1,0 +1,731 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#16324f" />
+  <meta name="description" content="建筑施工安全题库在线刷题，支持解析、错题本、图片题与移动端访问。" />
+  <title>建筑施工安全题库 · 在线刷题</title>
+  <style>
+    :root {
+      --bg: #f3f5f8;
+      --bg-2: #e8edf3;
+      --surface: #ffffff;
+      --ink: #1b2430;
+      --muted: #5b6777;
+      --line: #d7dee8;
+      --navy: #16324f;
+      --navy-2: #1e4468;
+      --accent: #c9842a;
+      --ok: #1f7a4d;
+      --ok-bg: #e7f6ee;
+      --bad: #b42318;
+      --bad-bg: #fdecea;
+      --chip: #eef3f8;
+      --shadow: 0 10px 28px rgba(22, 50, 79, .08);
+      --radius: 14px;
+      --side-w: 300px;
+      --safe-b: env(safe-area-inset-bottom, 0px);
+      --safe-t: env(safe-area-inset-top, 0px);
+    }
+    * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    html, body { margin: 0; padding: 0; }
+    body {
+      font-family: "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans SC", sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100dvh;
+    }
+    button, select, input { font-family: inherit; font-size: 14px; }
+    button { cursor: pointer; }
+    .app { display: grid; grid-template-columns: var(--side-w) 1fr; min-height: 100dvh; }
+    .side {
+      background: linear-gradient(180deg, var(--navy) 0%, #0f2236 100%);
+      color: #e8eef5;
+      padding: 18px 16px calc(24px + var(--safe-b));
+      position: sticky; top: 0; height: 100dvh; overflow: auto;
+      z-index: 30;
+    }
+    .brand { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,.12); }
+    .logo {
+      width: 40px; height: 40px; border-radius: 10px; flex: none;
+      background: linear-gradient(135deg, var(--accent), #8a5a16);
+      display: grid; place-items: center; font-weight: 700; color: #fff;
+    }
+    .brand h1 { font-size: 15px; margin: 0; font-weight: 650; }
+    .brand p { margin: 3px 0 0; font-size: 12px; color: #9fb0c4; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+    .stat { background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.08); border-radius: 10px; padding: 9px; }
+    .stat b { display: block; font-size: 18px; color: #fff; }
+    .stat span { font-size: 11px; color: #9fb0c4; }
+    .sec-title { font-size: 11px; letter-spacing: .08em; color: #8ea0b5; margin: 14px 0 8px; }
+    .filters { display: flex; flex-direction: column; gap: 8px; }
+    .filters label { font-size: 12px; color: #b7c5d4; display: block; margin-bottom: 4px; }
+    .filters select, .filters input[type="search"], .jump input {
+      width: 100%; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.12);
+      color: #f3f6fa; border-radius: 8px; padding: 9px 10px; outline: none;
+    }
+    .filters select option { color: #1b2430; }
+    .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      border: 1px solid rgba(255,255,255,.16); background: transparent; color: #d5e0ec;
+      border-radius: 999px; padding: 6px 10px; font-size: 12px;
+    }
+    .chip.on { background: var(--accent); border-color: var(--accent); color: #fff; }
+    .mode-btns { display: grid; gap: 8px; }
+    .btn { border: 0; border-radius: 10px; padding: 10px 14px; font-weight: 600; }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-ghost { background: rgba(255,255,255,.08); color: #e8eef5; border: 1px solid rgba(255,255,255,.12); }
+    .btn-light { background: #fff; color: var(--navy); border: 1px solid var(--line); }
+    .btn-ok { background: var(--ok); color: #fff; }
+    .btn-bad { background: var(--bad); color: #fff; }
+    .btn:disabled { opacity: .45; cursor: not-allowed; }
+    .side-foot { margin-top: 16px; font-size: 12px; color: #8ea0b5; line-height: 1.55; }
+    .jump { display: flex; gap: 8px; align-items: center; margin-top: 10px; }
+    .main { padding: 18px 22px calc(28px + var(--safe-b)); max-width: 920px; width: 100%; }
+    .topbar { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 14px; }
+    .progress-wrap { flex: 1; min-width: 0; }
+    .progress-meta { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; color: var(--muted); margin-bottom: 6px; }
+    .bar { height: 8px; background: var(--bg-2); border-radius: 99px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, var(--navy), var(--accent)); transition: width .25s; }
+    .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 20px; }
+    .meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; }
+    .tag { font-size: 12px; padding: 4px 8px; border-radius: 6px; background: var(--chip); color: var(--navy-2); }
+    .tag.pic { background: #fff4e0; color: #8a5a16; }
+    .tag.multi { background: #e8eef8; }
+    .tag.diff-中等题 { background: #fff6d8; color: #7a5b00; }
+    .tag.diff-困难题 { background: #fdecea; color: #9b1c1c; }
+    .stem { font-size: 17px; line-height: 1.7; font-weight: 650; margin: 0 0 14px; }
+    .q-img-wrap { margin: 0 0 14px; }
+    .q-img-wrap img {
+      max-width: 100%; max-height: min(52vh, 420px); border-radius: 10px;
+      border: 1px solid var(--line); cursor: zoom-in; background: #fafbfc;
+    }
+    .img-missing { padding: 14px; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-size: 13px; background: #fafbfc; line-height: 1.6; }
+    .opts { display: grid; gap: 8px; }
+    .opt {
+      width: 100%; text-align: left; border: 1px solid var(--line); background: #fff;
+      border-radius: 12px; padding: 12px; display: flex; gap: 12px; align-items: flex-start;
+      line-height: 1.55; color: var(--ink); min-height: 48px;
+    }
+    .opt:hover { border-color: #b9c8d8; background: #f8fafc; }
+    .key { flex: 0 0 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--bg-2); font-weight: 700; font-size: 13px; }
+    .opt.picked { border-color: var(--navy); background: #eef4fb; }
+    .opt.picked .key { background: var(--navy); color: #fff; }
+    .opt.right { border-color: var(--ok); background: var(--ok-bg); }
+    .opt.right .key { background: var(--ok); color: #fff; }
+    .opt.wrong { border-color: var(--bad); background: var(--bad-bg); }
+    .opt.wrong .key { background: var(--bad); color: #fff; }
+    .opt.miss { border-color: var(--ok); background: #f3fbf6; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+    .feedback { margin-top: 14px; border-radius: 12px; padding: 14px; border: 1px solid var(--line); }
+    .feedback.ok { background: var(--ok-bg); border-color: #b7e0c8; }
+    .feedback.bad { background: var(--bad-bg); border-color: #f5c2c0; }
+    .feedback h3 { margin: 0 0 6px; font-size: 15px; }
+    .feedback p { margin: 0; color: #334155; line-height: 1.65; font-size: 14px; }
+    .exp-box { margin-top: 10px; padding-top: 10px; border-top: 1px dashed rgba(0,0,0,.12); }
+    .exp-box b { display: block; margin-bottom: 4px; }
+    .empty { padding: 48px 16px; text-align: center; color: var(--muted); }
+    .lightbox { position: fixed; inset: 0; background: rgba(10,18,28,.86); display: none; align-items: center; justify-content: center; z-index: 60; padding: 16px; }
+    .lightbox.on { display: flex; }
+    .lightbox img { max-width: 96vw; max-height: 92vh; border-radius: 8px; }
+    .home-hero h2 { margin: 0 0 8px; font-size: 22px; }
+    .home-hero p { margin: 0 0 16px; color: var(--muted); line-height: 1.7; }
+    .legend { font-size: 12px; color: var(--muted); margin-top: 10px; line-height: 1.6; }
+    .check { display: flex; gap: 8px; align-items: center; color: #d5e0ec; font-size: 13px; margin-top: 8px; }
+    .list-item {
+      border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 8px; background: #fff;
+    }
+    .list-item h4 { margin: 0 0 6px; font-size: 15px; line-height: 1.5; font-weight: 600; }
+    .list-item .sub { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+    .list-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .view { display: none; }
+    .view.on { display: block; }
+    .mob-bar {
+      display: none; position: sticky; top: 0; z-index: 25;
+      background: var(--navy); color: #fff; padding: calc(10px + var(--safe-t)) 12px 10px;
+      align-items: center; justify-content: space-between; gap: 10px;
+    }
+    .mob-bar strong { font-size: 15px; }
+    .icon-btn { background: rgba(255,255,255,.12); color: #fff; border: 0; border-radius: 8px; padding: 8px 10px; }
+    .mask { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 28; }
+    .mask.on { display: block; }
+    .sticky-actions {
+      display: none; position: sticky; bottom: 0; background: rgba(243,245,248,.94);
+      backdrop-filter: blur(8px); padding: 8px 0 calc(8px + var(--safe-b)); margin-top: 12px;
+    }
+    @media (max-width: 860px) {
+      .app { grid-template-columns: 1fr; }
+      .mob-bar { display: flex; }
+      .side {
+        position: fixed; left: 0; top: 0; height: 100dvh; width: min(86vw, 320px);
+        transform: translateX(-105%); transition: transform .22s ease;
+      }
+      .side.open { transform: translateX(0); }
+      .main { padding: 14px 12px 20px; }
+      .stem { font-size: 16px; }
+      .card { padding: 16px 14px; }
+      .home-hero h2 { font-size: 19px; }
+      .sticky-actions { display: block; }
+      .quiz-actions-desktop { display: none; }
+    }
+    @media (min-width: 861px) {
+      .sticky-actions { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="mob-bar">
+    <button class="icon-btn" id="btnMenu" type="button">菜单</button>
+    <strong>建筑施工安全题库</strong>
+    <button class="icon-btn" id="btnHomeMob" type="button">首页</button>
+  </div>
+  <div class="mask" id="mask"></div>
+
+  <div class="app">
+    <aside class="side" id="side">
+      <div class="brand">
+        <div class="logo">安</div>
+        <div>
+          <h1>建筑施工安全题库</h1>
+          <p>解析 · 错题本 · 手机可刷</p>
+        </div>
+      </div>
+      <div class="stat-grid">
+        <div class="stat"><b id="sTotal">0</b><span>当前筛选</span></div>
+        <div class="stat"><b id="sDone">0</b><span>已作答</span></div>
+        <div class="stat"><b id="sAcc">—</b><span>正确率</span></div>
+        <div class="stat"><b id="sWrong">0</b><span>错题本</span></div>
+      </div>
+
+      <div class="sec-title">练习与错题</div>
+      <div class="mode-btns">
+        <button class="btn btn-primary" id="btnSeq" type="button">顺序练习</button>
+        <button class="btn btn-ghost" id="btnRand" type="button">随机练习</button>
+        <button class="btn btn-ghost" id="btnWrongPractice" type="button">练习错题</button>
+        <button class="btn btn-ghost" id="btnWrongBook" type="button">打开错题本</button>
+        <button class="btn btn-ghost" id="btnFav" type="button">收藏重练</button>
+      </div>
+
+      <div class="sec-title">筛选</div>
+      <div class="filters">
+        <div>
+          <label>题目类型</label>
+          <div class="chip-row" id="fType"></div>
+        </div>
+        <div>
+          <label>题干类型</label>
+          <div class="chip-row" id="fStem"></div>
+        </div>
+        <div>
+          <label>题目难度</label>
+          <div class="chip-row" id="fDiff"></div>
+        </div>
+        <div>
+          <label>标签</label>
+          <select id="fTag"><option value="">全部标签</option></select>
+        </div>
+        <div>
+          <label>搜索题干 / 序号</label>
+          <input type="search" id="fSearch" placeholder="输入关键词或题号" />
+        </div>
+      </div>
+
+      <div class="sec-title">设置</div>
+      <label class="check"><input type="checkbox" id="autoNext" /> 答对后自动下一题</label>
+      <label class="check"><input type="checkbox" id="onlyUndo" /> 仅练习未做题目</label>
+      <label class="check"><input type="checkbox" id="keepWrong" /> 答对后仍保留在错题本</label>
+      <div class="jump">
+        <input id="jumpId" placeholder="跳转题号" inputmode="numeric" />
+        <button class="btn btn-ghost" id="btnJump" type="button">跳转</button>
+      </div>
+      <div class="side-foot">
+        图片路径已改为 <code>image/</code>。部署到 GitHub Pages 时，请将原图片文件夹重命名为 <b>image</b> 后一并上传。作答与错题记录保存在本机浏览器。
+      </div>
+      <div style="margin-top:12px; display:grid; gap:8px;">
+        <button class="btn btn-ghost" id="btnReset" type="button">清除作答记录</button>
+        <button class="btn btn-ghost" id="btnClearWrong" type="button">清空错题本</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="progress-wrap">
+          <div class="progress-meta">
+            <span id="posText">尚未开始</span>
+            <span id="modeText">请选择练习模式</span>
+          </div>
+          <div class="bar"><i id="barFill"></i></div>
+        </div>
+      </div>
+
+      <section class="card view on" id="homeView">
+        <div class="home-hero">
+          <h2>在线刷题</h2>
+          <p>
+            题库共 <b id="allCount">—</b> 道题，内容按 Excel 原文导入。
+            作答后将显示正确答案与解析；答错的题目会进入错题本，可单独复习。
+          </p>
+          <div class="actions">
+            <button class="btn btn-primary" id="btnStart" type="button">开始顺序练习</button>
+            <button class="btn btn-light" id="btnStartRand" type="button">开始随机练习</button>
+            <button class="btn btn-light" id="btnOpenWrong" type="button">查看错题本</button>
+          </div>
+          <p class="legend">
+            单选题点击选项即可判分；多选题可多选后点击「提交答案」。电脑端可用数字键 1–6 选择、Enter 提交或下一题、方向键翻题。
+          </p>
+        </div>
+      </section>
+
+      <section class="card view" id="quizView">
+        <div class="meta" id="qMeta"></div>
+        <h2 class="stem" id="qStem"></h2>
+        <div class="q-img-wrap" id="qImg"></div>
+        <div class="opts" id="qOpts"></div>
+        <div class="actions quiz-actions-desktop" id="qActions"></div>
+        <div id="qFeed"></div>
+        <div class="sticky-actions">
+          <div class="actions" id="qActionsMob"></div>
+        </div>
+      </section>
+
+      <section class="card view" id="wrongView">
+        <div class="home-hero">
+          <h2>错题本</h2>
+          <p id="wrongSummary">尚未收录错题。</p>
+          <div class="actions">
+            <button class="btn btn-primary" id="btnPracticeWrong2" type="button">练习全部错题</button>
+            <button class="btn btn-light" id="btnExportWrong" type="button">导出错题号</button>
+          </div>
+        </div>
+        <div id="wrongList" style="margin-top:16px;"></div>
+      </section>
+
+      <section class="card view" id="emptyView">
+        <div class="empty">当前条件下没有题目，请调整筛选。</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="lightbox" id="lightbox"><img id="lightboxImg" alt="题目图片放大" /></div>
+  <script src="questions.js"></script>
+  <script>
+    const LS_KEY = "aq_quiz_progress_v2";
+    const state = {
+      view: "home",
+      mode: "seq",
+      list: [],
+      index: 0,
+      picked: [],
+      submitted: false,
+      filters: { tp: "", st: "", df: "", tag: "", q: "", onlyUndo: false },
+      progress: { answers: {}, wrong: {}, fav: {} },
+      autoNext: false,
+      keepWrong: false
+    };
+
+    function $(id) { return document.getElementById(id); }
+    function loadProgress() {
+      try {
+        const raw = localStorage.getItem(LS_KEY) || localStorage.getItem("aq_quiz_progress_v1");
+        if (raw) Object.assign(state.progress, JSON.parse(raw));
+      } catch (e) {}
+    }
+    function saveProgress() { localStorage.setItem(LS_KEY, JSON.stringify(state.progress)); }
+    function unique(arr) { return Array.from(new Set(arr)); }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]));
+    }
+    function closeMenu() { $("side").classList.remove("open"); $("mask").classList.remove("on"); }
+    function showView(name) {
+      state.view = name;
+      ["homeView", "quizView", "wrongView", "emptyView"].forEach(id => {
+        $(id).classList.toggle("on", id === name + "View" || (name === "home" && id === "homeView"));
+      });
+      $("homeView").classList.toggle("on", name === "home");
+      $("quizView").classList.toggle("on", name === "quiz");
+      $("wrongView").classList.toggle("on", name === "wrong");
+      $("emptyView").classList.toggle("on", name === "empty");
+      closeMenu();
+    }
+
+    function applyFilters() {
+      const f = state.filters;
+      return (window.QUESTIONS || []).filter(q => {
+        if (f.tp && q.tp !== f.tp) return false;
+        if (f.st && q.st !== f.st) return false;
+        if (f.df && q.df !== f.df) return false;
+        if (f.tag && q.tag !== f.tag) return false;
+        if (f.onlyUndo && state.progress.answers[q.id]) return false;
+        if (f.q) {
+          const s = f.q.trim();
+          if (!s) return true;
+          return q.id === s || q.stem.includes(s) || (q.tag || "").includes(s);
+        }
+        return true;
+      });
+    }
+
+    function buildList(mode) {
+      state.mode = mode;
+      let list;
+      if (mode === "wrong") {
+        const allow = new Set(applyFilters().map(q => q.id));
+        list = (window.QUESTIONS || []).filter(q => state.progress.wrong[q.id] && allow.has(q.id));
+      } else if (mode === "fav") {
+        const allow = new Set(applyFilters().map(q => q.id));
+        list = (window.QUESTIONS || []).filter(q => state.progress.fav[q.id] && allow.has(q.id));
+      } else {
+        list = applyFilters();
+      }
+      if (mode === "rand") {
+        list = list.slice();
+        for (let i = list.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [list[i], list[j]] = [list[j], list[i]];
+        }
+      }
+      state.list = list;
+      state.index = 0;
+      renderStats();
+      if (!list.length) { showView("empty"); $("posText").textContent = "0 / 0"; return; }
+      showView("quiz");
+      showQuestion();
+    }
+
+    function current() { return state.list[state.index]; }
+
+    function renderStats() {
+      const pool = applyFilters();
+      const ids = new Set(pool.map(q => q.id));
+      let done = 0, right = 0;
+      Object.keys(state.progress.answers).forEach(id => {
+        if (!ids.has(id)) return;
+        done += 1;
+        if (state.progress.answers[id].ok) right += 1;
+      });
+      const wrongN = Object.keys(state.progress.wrong).length;
+      $("sTotal").textContent = pool.length;
+      $("sDone").textContent = done;
+      $("sAcc").textContent = done ? Math.round(right / done * 100) + "%" : "—";
+      $("sWrong").textContent = wrongN;
+    }
+
+    function setProgressBar() {
+      const n = state.list.length;
+      const i = n ? state.index + 1 : 0;
+      $("posText").textContent = n ? (i + " / " + n) : "0 / 0";
+      $("barFill").style.width = n ? ((i / n) * 100) + "%" : "0%";
+      const names = { seq: "顺序练习", rand: "随机练习", wrong: "错题练习", fav: "收藏重练" };
+      $("modeText").textContent = names[state.mode] || "";
+    }
+
+    function showQuestion() {
+      const q = current();
+      if (!q) return;
+      state.picked = [];
+      state.submitted = false;
+      setProgressBar();
+      $("qMeta").innerHTML = "";
+      [
+        ["序号 " + q.id, ""],
+        [q.tp, q.tp === "多选题" ? "multi" : ""],
+        [q.st, q.st === "图片题" ? "pic" : ""],
+        [q.df, "diff-" + q.df],
+        [q.tag, ""]
+      ].forEach(([text, cls]) => {
+        const s = document.createElement("span");
+        s.className = "tag " + cls;
+        s.textContent = text;
+        $("qMeta").appendChild(s);
+      });
+      $("qStem").textContent = q.stem;
+      const imgBox = $("qImg");
+      imgBox.innerHTML = "";
+      if (q.img) {
+        const img = document.createElement("img");
+        img.src = q.img;
+        img.alt = "题目图片 " + q.id;
+        img.addEventListener("click", () => { $("lightboxImg").src = q.img; $("lightbox").classList.add("on"); });
+        img.addEventListener("error", () => {
+          imgBox.innerHTML = '<div class="img-missing">未找到图片文件「' + escapeHtml(q.img) + '」。请将原图片复制到网站根目录下的 <b>image</b> 文件夹，并保持原文件名不变。</div>';
+        });
+        imgBox.appendChild(img);
+      }
+      $("qOpts").innerHTML = "";
+      q.opts.forEach(opt => {
+        const b = document.createElement("button");
+        b.className = "opt";
+        b.type = "button";
+        b.dataset.k = opt.k;
+        b.innerHTML = '<span class="key">' + opt.k + '</span><span>' + escapeHtml(opt.t) + '</span>';
+        b.addEventListener("click", () => toggleOpt(opt.k));
+        $("qOpts").appendChild(b);
+      });
+      $("qFeed").innerHTML = "";
+      renderActions();
+      renderStats();
+    }
+
+    function toggleOpt(k) {
+      const q = current();
+      if (!q || state.submitted) return;
+      if (q.tp === "单选题") {
+        state.picked = [k];
+        paintPicked();
+        submitAnswer();
+        return;
+      }
+      const i = state.picked.indexOf(k);
+      if (i >= 0) state.picked.splice(i, 1); else state.picked.push(k);
+      paintPicked();
+    }
+    function paintPicked() {
+      document.querySelectorAll(".opt").forEach(el => el.classList.toggle("picked", state.picked.includes(el.dataset.k)));
+    }
+
+    function submitAnswer() {
+      const q = current();
+      if (!q || state.submitted || !state.picked.length) return;
+      state.submitted = true;
+      const user = state.picked.slice().sort().join("");
+      const ans = q.ans.split("").sort().join("");
+      const ok = user === ans;
+      state.progress.answers[q.id] = { sel: user, ok: ok, t: Date.now() };
+      if (ok) {
+        if (!state.keepWrong) delete state.progress.wrong[q.id];
+      } else {
+        state.progress.wrong[q.id] = { sel: user, ans: q.ans, t: Date.now() };
+      }
+      saveProgress();
+      document.querySelectorAll(".opt").forEach(el => {
+        const k = el.dataset.k;
+        el.classList.remove("picked");
+        if (ans.includes(k) && user.includes(k)) el.classList.add("right");
+        else if (!ans.includes(k) && user.includes(k)) el.classList.add("wrong");
+        else if (ans.includes(k) && !user.includes(k)) el.classList.add("miss");
+      });
+      const expText = q.exp ? escapeHtml(q.exp) : "本题在原题库中未提供解析。";
+      $("qFeed").innerHTML =
+        '<div class="feedback ' + (ok ? "ok" : "bad") + '">' +
+        "<h3>" + (ok ? "回答正确" : "已加入错题本") + "</h3>" +
+        "<p>正确答案：" + q.ans + "　　您的作答：" + user + "</p>" +
+        '<div class="exp-box"><b>解析</b><p>' + expText + "</p></div></div>";
+      renderActions();
+      renderStats();
+      if (ok && state.autoNext) setTimeout(nextQ, 700);
+    }
+
+    function renderActionButtons(box) {
+      const q = current();
+      if (!q) return;
+      box.innerHTML = "";
+      if (!state.submitted && q.tp === "多选题") {
+        const s = document.createElement("button");
+        s.className = "btn btn-ok"; s.type = "button"; s.textContent = "提交答案";
+        s.onclick = submitAnswer; box.appendChild(s);
+      }
+      const prev = document.createElement("button");
+      prev.className = "btn btn-light"; prev.type = "button"; prev.textContent = "上一题";
+      prev.disabled = state.index <= 0;
+      prev.onclick = () => { state.index -= 1; showQuestion(); };
+      const next = document.createElement("button");
+      next.className = "btn btn-primary"; next.type = "button";
+      next.textContent = state.index >= state.list.length - 1 ? "完成本组" : "下一题";
+      next.onclick = nextQ;
+      const fav = document.createElement("button");
+      fav.className = "btn btn-light"; fav.type = "button";
+      fav.textContent = state.progress.fav[q.id] ? "取消收藏" : "收藏";
+      fav.onclick = () => {
+        if (state.progress.fav[q.id]) delete state.progress.fav[q.id];
+        else state.progress.fav[q.id] = 1;
+        saveProgress(); renderActions();
+      };
+      const drop = document.createElement("button");
+      drop.className = "btn btn-light"; drop.type = "button";
+      drop.textContent = state.progress.wrong[q.id] ? "移出错题本" : "加入错题本";
+      drop.onclick = () => {
+        if (state.progress.wrong[q.id]) delete state.progress.wrong[q.id];
+        else state.progress.wrong[q.id] = { sel: (state.progress.answers[q.id] || {}).sel || "", ans: q.ans, t: Date.now() };
+        saveProgress(); renderActions(); renderStats();
+      };
+      box.append(prev, next, fav, drop);
+    }
+    function renderActions() {
+      renderActionButtons($("qActions"));
+      renderActionButtons($("qActionsMob"));
+    }
+
+    function nextQ() {
+      if (state.index >= state.list.length - 1) {
+        showView("home");
+        $("homeView").querySelector("h2").textContent = "本组练习结束";
+        $("homeView").querySelector("p").textContent = "已完成本组 " + state.list.length + " 道题目。可继续筛选，或进入错题本复习。";
+        renderStats();
+        return;
+      }
+      state.index += 1;
+      showQuestion();
+    }
+
+    function byId(id) { return (window.QUESTIONS || []).find(q => q.id === id); }
+
+    function renderWrongBook() {
+      const ids = Object.keys(state.progress.wrong);
+      $("wrongSummary").textContent = ids.length ? ("当前错题 " + ids.length + " 道，可逐题复习或一键练习。") : "尚未收录错题。答错的题目会自动进入此处。";
+      const box = $("wrongList");
+      box.innerHTML = "";
+      if (!ids.length) {
+        box.innerHTML = '<div class="empty">错题本为空。</div>';
+        showView("wrong");
+        return;
+      }
+      ids.sort((a, b) => Number(a) - Number(b)).forEach(id => {
+        const q = byId(id);
+        const rec = state.progress.wrong[id] || {};
+        const item = document.createElement("div");
+        item.className = "list-item";
+        item.innerHTML =
+          "<h4>" + escapeHtml((q && q.stem) || ("题号 " + id)) + "</h4>" +
+          '<div class="sub">题号 ' + id + " · " + escapeHtml((q && q.tp) || "") + " · " +
+          escapeHtml((q && q.tag) || "") + " · 正确答案 " + escapeHtml((q && q.ans) || rec.ans || "") +
+          (rec.sel ? (" · 上次作答 " + escapeHtml(rec.sel)) : "") + "</div>" +
+          '<div class="list-actions"></div>';
+        const actions = item.querySelector(".list-actions");
+        const go = document.createElement("button");
+        go.className = "btn btn-primary"; go.type = "button"; go.textContent = "练习此题";
+        go.onclick = () => {
+          state.mode = "wrong";
+          state.list = q ? [q] : [];
+          state.index = 0;
+          if (!state.list.length) return;
+          showView("quiz");
+          showQuestion();
+        };
+        const del = document.createElement("button");
+        del.className = "btn btn-light"; del.type = "button"; del.textContent = "移出";
+        del.onclick = () => { delete state.progress.wrong[id]; saveProgress(); renderStats(); renderWrongBook(); };
+        actions.append(go, del);
+        box.appendChild(item);
+      });
+      showView("wrong");
+    }
+
+    function makeChips(hostId, values, key) {
+      const host = $(hostId);
+      host.innerHTML = "";
+      const all = document.createElement("button");
+      all.className = "chip on"; all.type = "button"; all.textContent = "全部";
+      all.onclick = () => { state.filters[key] = ""; markChips(host); renderStats(); };
+      host.appendChild(all);
+      values.forEach(v => {
+        const b = document.createElement("button");
+        b.className = "chip"; b.type = "button"; b.textContent = v; b.dataset.v = v;
+        b.onclick = () => {
+          state.filters[key] = state.filters[key] === v ? "" : v;
+          markChips(host); renderStats();
+        };
+        host.appendChild(b);
+      });
+    }
+    function markChips(host) {
+      const keyMap = { fType: "tp", fStem: "st", fDiff: "df" };
+      const key = keyMap[host.id];
+      host.querySelectorAll(".chip").forEach((el, i) => {
+        if (i === 0) el.classList.toggle("on", !state.filters[key]);
+        else el.classList.toggle("on", state.filters[key] === el.dataset.v);
+      });
+    }
+
+    function initFilters() {
+      const all = window.QUESTIONS || [];
+      makeChips("fType", unique(all.map(q => q.tp)), "tp");
+      makeChips("fStem", unique(all.map(q => q.st)), "st");
+      makeChips("fDiff", unique(all.map(q => q.df)), "df");
+      const tags = unique(all.map(q => q.tag)).sort();
+      const sel = $("fTag");
+      tags.forEach(t => {
+        const o = document.createElement("option");
+        o.value = t;
+        o.textContent = t + "（" + all.filter(q => q.tag === t).length + "）";
+        sel.appendChild(o);
+      });
+      sel.addEventListener("change", () => { state.filters.tag = sel.value; renderStats(); });
+      $("fSearch").addEventListener("input", e => { state.filters.q = e.target.value; renderStats(); });
+    }
+
+    function jumpToId() {
+      const id = $("jumpId").value.trim();
+      if (!id) return;
+      const all = window.QUESTIONS || [];
+      const idx = all.findIndex(x => x.id === id);
+      if (idx < 0) { alert("未找到题号 " + id); return; }
+      state.mode = "seq";
+      state.list = all.slice();
+      state.index = idx;
+      showView("quiz");
+      showQuestion();
+    }
+
+    function bind() {
+      $("btnMenu").onclick = () => { $("side").classList.add("open"); $("mask").classList.add("on"); };
+      $("mask").onclick = closeMenu;
+      $("btnHomeMob").onclick = () => { showView("home"); };
+      $("btnSeq").onclick = () => buildList("seq");
+      $("btnRand").onclick = () => buildList("rand");
+      $("btnWrongPractice").onclick = () => buildList("wrong");
+      $("btnPracticeWrong2").onclick = () => buildList("wrong");
+      $("btnWrongBook").onclick = renderWrongBook;
+      $("btnOpenWrong").onclick = renderWrongBook;
+      $("btnFav").onclick = () => buildList("fav");
+      $("btnStart").onclick = () => buildList("seq");
+      $("btnStartRand").onclick = () => buildList("rand");
+      $("btnJump").onclick = jumpToId;
+      $("jumpId").addEventListener("keydown", e => { if (e.key === "Enter") jumpToId(); });
+      $("autoNext").onchange = e => { state.autoNext = e.target.checked; };
+      $("onlyUndo").onchange = e => { state.filters.onlyUndo = e.target.checked; renderStats(); };
+      $("keepWrong").onchange = e => { state.keepWrong = e.target.checked; };
+      $("btnReset").onclick = () => {
+        if (confirm("确定清除本机全部作答、错题与收藏记录？")) {
+          state.progress = { answers: {}, wrong: {}, fav: {} };
+          saveProgress(); renderStats();
+          if (state.view === "wrong") renderWrongBook();
+        }
+      };
+      $("btnClearWrong").onclick = () => {
+        if (confirm("确定清空错题本？作答记录将保留。")) {
+          state.progress.wrong = {};
+          saveProgress(); renderStats();
+          if (state.view === "wrong") renderWrongBook();
+        }
+      };
+      $("btnExportWrong").onclick = () => {
+        const ids = Object.keys(state.progress.wrong).sort((a, b) => Number(a) - Number(b));
+        if (!ids.length) { alert("错题本为空。"); return; }
+        const text = ids.join("\n");
+        navigator.clipboard.writeText(text).then(() => alert("已复制 " + ids.length + " 个错题号。"), () => alert(text));
+      };
+      $("lightbox").onclick = () => $("lightbox").classList.remove("on");
+      document.addEventListener("keydown", e => {
+        if (state.view !== "quiz" || !current()) return;
+        if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+        const map = { "1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5 };
+        if (map[e.key] != null && current().opts[map[e.key]]) toggleOpt(current().opts[map[e.key]].k);
+        else if (e.key === "Enter") { if (!state.submitted) submitAnswer(); else nextQ(); }
+        else if (e.key === "ArrowRight") nextQ();
+        else if (e.key === "ArrowLeft" && state.index > 0) { state.index -= 1; showQuestion(); }
+      });
+    }
+
+    loadProgress();
+    if (!window.QUESTIONS) {
+      $("homeView").querySelector("p").textContent = "未能加载 questions.js，请确认该文件与 index.html 位于同一目录。";
+    } else {
+      $("allCount").textContent = window.QUESTIONS.length;
+      initFilters();
+      renderStats();
+      bind();
+    }
+  </script>
+</body>
+</html>
